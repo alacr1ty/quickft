@@ -19,34 +19,40 @@ import sys
 from socket import *
 
 
-
-def conex_client(client_socket):
-# try:
+#Function: conex_data
+#Description: Opens a data connection to the client.
+#Input: Control connection socket object.
+#Output: Data connection socket object.
+def conex_data(client_socket):
+	# set variables
 	client_sock_def = client_socket.getsockname()
-	print("client_sock_def")
 	client_name = client_sock_def[0]
-	client_port = client_sock_def[1] + 1
-	# connect to the server
+	client_port = int(sys.argv[1])+1
+	
+# try:
+	# connect to the client
+	print("Establishing data connection with client '" + client_name + "' on port " + str(client_port) + "...")
 	server_socket = socket(AF_INET, SOCK_STREAM) # create TCP socket
-	server_socket.connect((client_name,client_port)) # connect to server
-	print("Server connected to client '" + client_name + "' on port " + str(client_port) + "...")
+	server_socket.connect((client_name,client_port)) # connect to client
+	print("Connected.")
 
 	# returns the socket
 	return server_socket
 
-#Function: download_file (Download file from server)
+#Function: send_file (Send file to client)
 #Description: Opens a data connection to the server and downloads the specified file.
 #Input: File name.
 #Output: None
-def download_file(file, socket):
+def send_file(filename, socket):
 	data = ""
 	contents = os.listdir(".") # get dir contents
-	if file in contents: # find file
-		print("Sending file: " + file)
-		# conex_client(socket) # open data connection
-		f = open(file, "r+") # open and read file
+	if filename in contents: # find file
+		print("Sending file: " + filename)
+		# client_socket = conex_data(socket) # open data connection
+		f = open(filename, "r+") # open and read file
 		data = f.read(8192)
 		socket.send(data.encode ("UTF-8")) #send data
+		# client_socket.send(data.encode ("UTF-8")) #send data
 		print("File sent.")
 		# disconex_client(socket) # close data connection
 	else:
@@ -94,18 +100,29 @@ def run_client_srv(connection_socket):
 			if msg_in == "\\q": # if message is "\q"
 			 	# close connection to client
 				print("Connection closing...")
-				connection_socket.close() # close connection
+				connection_socket.close() # close control connection
 				print("Connection closed...")
 				return 1
 			elif msg_in.startswith("get "):
 				# open new connection on port_num+1
-				# client_socket = conex_client(connection_socket)
+				client_socket = conex_data(connection_socket)
 
-				file = msg_in.split()[1] # get filename
+				# get filename
+				filename = msg_in.split()[1]
 				# download file
-				download_file(file, connection_socket)
+				send_file(filename, client_socket)
+
+				# close socket
+				client_socket.close()
 			elif msg_in == "list":
-				list_dir(connection_socket)
+				# open new connection on portnum+1
+				client_socket = conex_data(connection_socket)
+				
+				# get and list server directory contents
+				list_dir(client_socket)
+
+				# close socket
+				client_socket.close()
 		else: # otherwise the connection has been closed by a sigint from either machine
 			print("Connection closed...")
 			return 1
