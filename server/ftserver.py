@@ -29,15 +29,17 @@ def conex_data(client_socket):
 	client_name = client_sock_def[0]
 	client_port = int(sys.argv[1])+1
 	
-# try:
-	# connect to the client
-	print("Establishing data connection with client '" + client_name + "' on port " + str(client_port) + "...")
-	server_socket = socket(AF_INET, SOCK_STREAM) # create TCP socket
-	server_socket.connect((client_name,client_port)) # connect to client
-	print("Connected.")
+	try:
+		# connect to the client
+		print("Establishing data connection with client '" + client_name + "' on port " + str(client_port) + "...")
+		server_socket = socket(AF_INET, SOCK_STREAM) # create TCP socket
+		server_socket.connect((client_name,client_port)) # connect to client
+		print("Data connection established with client '" + client_name + "' on port " + str(client_port) + ".")
 
-	# returns the socket
-	return server_socket
+		# returns the socket
+		return server_socket
+	except:
+		print("Could not establish a data connection.")
 
 #Function: send_file (Send file to client)
 #Description: Opens a data connection to the server and downloads the specified file.
@@ -99,40 +101,37 @@ def run_client_srv(connection_socket):
 			print("Client sent command: " + msg_in)
 			if msg_in == "\\q": # if message is "\q"
 			 	# close connection to client
-				print("Connection closing...")
+				print("Control connection closing...")
 				connection_socket.close() # close control connection
-				print("Connection closed...")
+				print("Control connection closed.")
 				return 1
 			elif msg_in.startswith("get "):
-				# open new connection on port_num+1
-				client_socket = conex_data(connection_socket)
+				# open new data connection on port_num+1
+				data_socket = conex_data(connection_socket)
 
 				# get filename
 				filename = msg_in.split()[1]
 				# download file
-				send_file(filename, client_socket)
+				send_file(filename, data_socket)
 
 				# close socket
-				client_socket.close()
+				print("Data connection closing...")
+				data_socket.close() # close data connection
+				print("Data connection closed.")
 			elif msg_in == "list":
-				# open new connection on portnum+1
-				client_socket = conex_data(connection_socket)
+				# open new data connection on portnum+1
+				data_socket = conex_data(connection_socket)
 				
-				# get and list server directory contents
-				list_dir(client_socket)
+				# get and send server directory contents
+				list_dir(data_socket)
 
 				# close socket
-				client_socket.close()
+				print("Data connection closing...")
+				data_socket.close() # close data connection
+				print("Data connection closed.")
 		else: # otherwise the connection has been closed by a sigint from either machine
-			print("Connection closed...")
+			print("Connection closed.")
 			return 1
-
-#Function: send_dir(Send directory contents)
-#Description:
-#Input:
-#Output: None.
-# def send_dir(socket, contents):
-	# socket.send(contents.encode ("UTF-8")) # send the message
 
 #Function: start_srv(Start server)
 #Description: Starts and maintains the server functionality. Calls the run_client_srv function when a connection is established.
