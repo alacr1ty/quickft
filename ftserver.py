@@ -8,7 +8,6 @@ Program: ftserve.py
 
 Description:
 	A simple file server.
-	See ftlib.py for utility functions.
 
 Usage: ftserver portnumber
 """
@@ -17,9 +16,22 @@ Usage: ftserver portnumber
 import signal
 import sys
 from socket import *
-from ftlib import *
 
 
+
+#Function: recv_message (Receive message)
+#Description: Receives a message from the other machine.
+#Input: Socket and maximum character length for the message.
+#Output: String including prompt and message.
+def recv_cmd (socket, message_max):
+	# receive the message back from server
+	# must be UTF-8
+	try:
+		sentence = socket.recv (message_max).decode ("UTF-8")
+		if sentence:
+			return sentence
+	except:
+		return
 
 #Function: run_client_srv (Run server-side client)
 #Description: Maintains the server-side file transfer functionality.
@@ -27,14 +39,25 @@ from ftlib import *
 #Output: Returns 1 to start_srv to end the connection.
 # def run_client_srv (connection_socket, handle_srv, handle_cl):
 def run_client_srv (connection_socket):
-	# keep prompting until the message is "\q"
+	# keep prompting until the message is "\q", or either machine sends a sigint
 	while 1:
-		msg_in = recv_message(connection_socket, 500)
-		print ("Client sent command: " + msg_in)
-		if msg_in == "\\q": # if message is "\q"
-		 	# close connection to client
-			print ("Connection closing...")
-			connection_socket.close() # close connection
+		msg_in = recv_cmd(connection_socket, 500)
+		if msg_in:
+			if msg_in == "\\q": # if message is "\q"
+			 	# close connection to client
+				print ("Connection closing...")
+				connection_socket.close() # close connection
+				print ("Connection closed...")
+				return 1
+			elif msg_in.startswith("get "):
+				print ("Client sent command: " + msg_in)
+				print ("Sending file: " + msg_in.split()[1])
+
+			elif msg_in == "list":
+				print ("Client sent command: " + msg_in)
+				print ("Returning directory contents: " + "")
+
+		else: # otherwise the connection has been closed by a sigint from either machine
 			print ("Connection closed...")
 			return 1
 
@@ -57,6 +80,10 @@ def start_srv (server_port, server_socket):
 		while stop is 0:
 			# run the server-based client until stop is returned
 			stop = run_client_srv (connection_socket)
+
+# signal handler function
+def sig_handle(sig, frame):
+	sys.exit(0)
 
 
 #Function: Main

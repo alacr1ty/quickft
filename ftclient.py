@@ -8,7 +8,6 @@ Program: ftclient.py
 
 Description:
 	A simple file transfer client.
-	See ftlib.py for utility functions.
 
 Usage: ftclient.py servername portnumber
 """
@@ -17,7 +16,6 @@ Usage: ftclient.py servername portnumber
 import signal
 import sys
 from socket import *
-from ftlib import *
 
 #Function: conex_srv (Connect to Server)
 #Description: Connects the client to the server.
@@ -28,7 +26,7 @@ def conex_srv (server_name, server_port):
 	# connect to the server
 	client_socket = socket (AF_INET, SOCK_STREAM) # create TCP socket
 	client_socket.connect ((server_name,server_port)) # connect to server
-	print ("Client connected on server '" + server_name + "' on port " + str(server_port) + "...")
+	print ("Client connected to server '" + server_name + "' on port " + str(server_port) + "...")
 
 	# returns the socket
 	return client_socket
@@ -41,7 +39,39 @@ def conex_srv (server_name, server_port):
 def run_client (client_socket):
 	# continuously prompt for a message until the message is "\q"
 	while 1:
-		msg_out = send_message (client_socket, ">", 500)
+		msg_out = send_cmd (client_socket, ">", 500)
+
+#Function: send_message (Send message)
+#Description: Prompts for and sends a command to the other machine.
+#Input: Socket, prompt, and maximum character length for the message.
+#Output: String including message.
+def send_cmd (socket, prompt, message_max):
+	sentence = ""
+
+	# prompt user for a message that is no longer than the maximum
+	while len(sentence) > message_max or len(sentence) == 0:
+		sentence = input (prompt)
+		if len(sentence) > message_max:
+			print ("Exceeded maximum characters allowed (" + str(message_max) + "), try again.")
+		elif sentence == "\\q": # if message is "\q", 
+			print ("Connection closed...")
+			socket.send (sentence.encode ("UTF-8")) # send the message
+			exit(0)
+		elif sentence.startswith("get"): # if client wants to get a file
+			print ("Downloading file: " + sentence.split()[1])
+			socket.send (sentence.encode ("UTF-8")) # send the message
+		elif sentence == "list": # if client wants to list directory contents
+			print ("Directory Contents: " + "")
+			socket.send (sentence.encode ("UTF-8")) # send the message
+		else: # otherwise
+			print ("Not a valid command, try again.")
+
+
+	return (sentence) # must be UTF-8
+
+# signal handler function
+def sig_handle(sig, frame):
+	sys.exit(0)
 
 
 # Function: Main
