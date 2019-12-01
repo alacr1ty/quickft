@@ -63,6 +63,7 @@ def send_cmd (socket, prompt, message_max):
 		elif sentence == "list": # if client wants to list directory contents
 			print ("Directory Contents: " + "")
 			socket.send (sentence.encode ("UTF-8")) # send the message
+			print(socket.recv (message_max).decode ("UTF-8"))
 		else: # otherwise
 			print ("Not a valid command, try again.")
 

@@ -13,6 +13,7 @@ Usage: ftserver portnumber
 """
 
 # imports
+import os
 import signal
 import sys
 from socket import *
@@ -55,11 +56,26 @@ def run_client_srv (connection_socket):
 
 			elif msg_in == "list":
 				print ("Client sent command: " + msg_in)
-				print ("Returning directory contents: " + "")
+				print ("Returning directory contents:") # return list
+				data = ""
+				contents = os.listdir(".")
+				for item in contents:
+					data += (item + "\n")
+				data = data[:-1]
+				print (data)
+				connection_socket.send (data.encode ("UTF-8")) # send the message
+					# send_dir (connection_socket, data)
 
 		else: # otherwise the connection has been closed by a sigint from either machine
 			print ("Connection closed...")
 			return 1
+
+#Function: send_dir (Send directory contents)
+#Description:
+#Input:
+#Output: None.
+# def send_dir (socket, contents):
+	# socket.send (contents.encode ("UTF-8")) # send the message
 
 #Function: start_srv (Start server)
 #Description: Starts and maintains the server functionality. Calls the run_client_srv function when a connection is established.
