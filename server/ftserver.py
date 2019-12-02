@@ -55,7 +55,7 @@ def send_file(filename, data_socket, ctrl_socket):
 		f = open(filename, "r+")
 		data = f.read()
 		
-		# send the length of the file being sent
+		# send the length of the file
 		ctrl_socket.send(str(len(data)).encode("UTF-8"))
 
 		# send the file in chunks

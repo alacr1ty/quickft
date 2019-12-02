@@ -24,33 +24,37 @@ from socket import *
 #Input: Server name and port to which to connect
 #Output: Control connection socket..
 def conex_ctrl(server_name, server_port):
-# try:
 	# connect to the server
 	client_socket = socket(AF_INET, SOCK_STREAM) # create TCP socket
+	client_socket.settimeout(3) # set the timeout period
 	client_socket.connect((server_name,server_port)) # connect to server
 	print("Client connected to server '" + server_name + "' on port " + str(server_port) + "...")
 
 	# returns the socket
 	return client_socket
-
 #Function: conex_data (Connect to Server)
 #Description: Accepts a data connection from the server.
 #Input: Control connection socket.
 #Output: Data connection socket
 def conex_data(server_socket):
-	# set variables
-	client_sock_def = server_socket.getsockname()
-	client_name = client_sock_def[0]
-	client_port = int(sys.argv[2])+1
+	try:
+		# set variables
+		client_sock_def = server_socket.getsockname()
+		client_name = client_sock_def[0]
+		client_port = int(sys.argv[2])+1
 
-	server_socket = socket(AF_INET,SOCK_STREAM) # create socket
-	server_socket.bind (("",client_port)) # bind socket to port
+		server_socket = socket(AF_INET,SOCK_STREAM) # create socket
+		server_socket.settimeout(3) # set the timeout period
+		server_socket.bind (("",client_port)) # bind socket to port
 
-	# print("Listening for data connection with server on port " + str(client_port) + "...")
-	server_socket.listen(1) # wait for an incoming connection
-	connection_socket, addr = server_socket.accept() # accept and get socket info
-	# print("Data connection established with server on port " + str(client_port) + ".")
-	return connection_socket
+		# print("Listening for data connection with server on port " + str(client_port) + "...")
+		server_socket.listen(1) # wait for an incoming connection
+		connection_socket, addr = server_socket.accept() # accept and get socket info
+		# print("Data connection established with server on port " + str(client_port) + ".")
+		return connection_socket
+	except:
+		print("Connection broken.")
+		exit(1)
 
 #Function: recv_list (Receive directory list)
 #Description: Receives a directory list from the server.
@@ -75,7 +79,7 @@ def recv_file(socket, filename):
 	# establish data connection
 	data_socket = conex_data(socket)
 
-	# receive the length of the file being sent
+	# receive the length of the file
 	len = int(socket.recv(32).decode("UTF-8"))
 
 	# assemble the file in chunks
