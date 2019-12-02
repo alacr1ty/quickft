@@ -109,7 +109,7 @@ def run_client_srv(ctrl_socket):
 		msg_in = recv_cmd(ctrl_socket, 4096)
 		if msg_in:
 			print("Client sent command: " + msg_in)
-			if msg_in == "\\q": # if message is "\q"
+			if msg_in in ("\\q", "\\quit"): # if command is "\q[uit]"
 			 	# close connection to client
 				print("Control connection closing...")
 				ctrl_socket.close() # close control connection
@@ -161,7 +161,7 @@ def start_srv(server_port, server_socket):
 		# keep connection open until message is "\quit"
 		stop = 0
 		while stop is 0:
-			# run the server-based client until stop is returned
+			# run the server-based client until stop (0) is returned
 			stop = run_client_srv(connection_socket)
 
 # signal handler function

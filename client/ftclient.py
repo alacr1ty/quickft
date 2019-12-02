@@ -22,16 +22,16 @@ from socket import *
 #Function: conex_ctrl (Connect to Server control connection)
 #Description: Connects the client to the server control connection.
 #Input: Server name and port to which to connect
-#Output: Control connection socket..
+#Output: Control connection socket.
 def conex_ctrl(server_name, server_port):
 	# connect to the server
 	client_socket = socket(AF_INET, SOCK_STREAM) # create TCP socket
 	client_socket.settimeout(3) # set the timeout period
 	client_socket.connect((server_name,server_port)) # connect to server
 	print("Client connected to server '" + server_name + "' on port " + str(server_port) + "...")
-
 	# returns the socket
 	return client_socket
+
 #Function: conex_data (Connect to Server)
 #Description: Accepts a data connection from the server.
 #Input: Control connection socket.
@@ -47,10 +47,9 @@ def conex_data(server_socket):
 		server_socket.settimeout(3) # set the timeout period
 		server_socket.bind (("",client_port)) # bind socket to port
 
-		# print("Listening for data connection with server on port " + str(client_port) + "...")
 		server_socket.listen(1) # wait for an incoming connection
 		connection_socket, addr = server_socket.accept() # accept and get socket info
-		# print("Data connection established with server on port " + str(client_port) + ".")
+
 		return connection_socket
 	except:
 		print("Connection broken.")
@@ -119,36 +118,36 @@ def run_client(client_socket):
 #Input: Socket, prompt, and maximum character length for the message.
 #Output: String including message.
 def proc_cmd(socket, prompt, message_max):
-	sentence = ""
+	command = ""
 	# prompt user for a message that is no longer than the maximum
-	while len(sentence) > message_max or len(sentence) == 0:
-		sentence = input(prompt)
+	while len(command) > message_max or len(command) == 0:
+		command = input(prompt)
 		
-		if len(sentence) > message_max:
+		if len(command) > message_max:
 			print("Exceeded maximum characters allowed (" + str(message_max) + "), try again.")
 		
-		elif sentence == "\\q": # if message is "\q", 
+		elif command in ("\\q", "\\quit"): # if command is "\q[uit]"
 			print("Connection closed...")
-			socket.send(sentence.encode("UTF-8")) # send the message
+			socket.send(command.encode("UTF-8")) # send the message
 			exit(0)
 		
-		elif sentence.startswith("get ") and len(sentence.split()) == 2: # if client wants to get a file
+		elif command.startswith("get ") and len(command.split()) == 2: # if client wants to get a file
 			# send the command using the control connection
-			socket.send(sentence.encode ("UTF-8"))
+			socket.send(command.encode ("UTF-8"))
 
-			filename = sentence.split()[1]
+			filename = command.split()[1]
 			recv_file(socket, filename)
 
-		elif sentence == "list": # if client wants to list directory contents
+		elif command == "list": # if client wants to list directory contents
 			# send the command
-			socket.send(sentence.encode ("UTF-8"))
+			socket.send(command.encode ("UTF-8"))
 
 			recv_list(socket)
 
 		else: # otherwise
 			print("Not a valid command, try again.")
 
-	return(sentence) # must be UTF-8
+	return(command) # must be UTF-8
 
 # signal handler function
 def sig_handle(sig, frame):
