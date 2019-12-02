@@ -61,7 +61,7 @@ def send_file(filename, data_socket, ctrl_socket):
 		# send the file in chunks
 		x = 0
 		while (x in range(0, len(data))):
-			data_socket.send(data[x:x+4096].encode ("UTF-8"))
+			data_socket.send(data[x:x+4095].encode ("UTF-8"))
 			x += 4096
 
 		# data_socket.send(data.encode ("UTF-8"))
