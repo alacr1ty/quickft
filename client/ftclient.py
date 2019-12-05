@@ -4,7 +4,7 @@
 Program: ftclient.py
 	Written by: Ava Cordero
 	Date: 11/29/2019
-	Latest:
+	Latest: 12/1/2019
 
 Description:
 	A simple file transfer client.
